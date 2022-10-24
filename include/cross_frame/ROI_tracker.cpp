@@ -112,11 +112,11 @@ void ClockwiseSortPoints(vector<Point> &vPoints)
     }
 }
 
-void findSquares(const cv::Mat& image,cv::Mat &out)
+void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &out)
 {
     
 	int thresh = 200;//边缘检测的梯度阈值
-	vector<vector<Point> > squares;
+	//vector<vector<Point> > squares;
 	squares.clear();
 	Mat src,dst, gray;
     gray=image.clone();
@@ -184,7 +184,21 @@ void findSquares(const cv::Mat& image,cv::Mat &out)
     {
         approx.clear();
         cout<<"最长的第"<<i<<"条轮廓长度为"<<contours_longest[i].size()<<endl;
-        
+        bool flag=0;
+        for(size_t j=0;j<contours_longest[i].size();j++)
+        {
+            if((fabs(contours_longest[i][j].x-image.cols/2)>(image.cols/2-20))||(fabs(contours_longest[i][j].y-image.rows/2)>(image.rows/2-20)))
+            {
+                //把边界上的去掉
+                cout<<"该轮廓在边界附近"<<endl;
+                flag=1;
+                continue;
+            }
+        }
+        if(flag==1)
+        {
+            continue;
+        }
         //使用图像轮廓点进行多边形拟合
         approxPolyDP(Mat( contours_longest[i]), approx, arcLength(Mat( contours_longest[i]), true)*0.02,false);
         cout<<"拟合得到的多边形顶点有"<<approx.size()<<endl;
@@ -207,7 +221,7 @@ void findSquares(const cv::Mat& image,cv::Mat &out)
         //Point a=centers[1];
         //##########################################对这些四边形进行判别##########################################
         
-        if (fabs(contourArea(Mat(approx))) > 1000 )
+        if (fabs(contourArea(Mat(approx))) > 30000 )
         {
             double maxCosine = 0;
             //cout<<"轮廓条数、面积满足条件"<<endl;
@@ -218,7 +232,7 @@ void findSquares(const cv::Mat& image,cv::Mat &out)
                 maxCosine = MAX(maxCosine, cosine);
             }
 
-            if (maxCosine < 0.7)
+            if (maxCosine < 0.4)
             {
                 squares.push_back(approx);
             }

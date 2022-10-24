@@ -9,6 +9,7 @@
 #include <opencv2/tracking.hpp>
 #include <opencv2/core/ocl.hpp>
 using namespace cv;
+using namespace std;
 
 class Tracker_ROI
 {
@@ -41,6 +42,6 @@ void select_color()
 
 };
 
-void findSquares(const Mat& image,Mat &out);
+void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &out);
 
 #endif //ROI_TRACKER_ROI_TRACKER_H
