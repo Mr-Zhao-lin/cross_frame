@@ -30,6 +30,22 @@ Tracker_ROI::Tracker_ROI(cv::Mat& _frame,const std::string &_trackerTypes) {
 
 }
 Tracker_ROI::Tracker_ROI(const cv::Mat &_frame,const std::string &_trackerTypes,const cv::Rect_<int> bbox) {
+    frame=_frame;
+
+    if (_trackerTypes == "MIL")
+        tracker = TrackerMIL::create();
+    else if(_trackerTypes == "KCF")
+        tracker = TrackerKCF::create();
+    else if (_trackerTypes == "GOTURN")
+        tracker = TrackerGOTURN::create();
+    else if (_trackerTypes == "CSRT")
+        tracker = TrackerCSRT::create();
+    else
+        std::cout<<"ERROR:No such tracker";
+
+    rectangle(frame, bbox, Scalar( 255, 0, 0 ), 2, 1 );
+    imshow("Tracking", frame);
+    tracker->init(frame,bbox);
 
 }
 
