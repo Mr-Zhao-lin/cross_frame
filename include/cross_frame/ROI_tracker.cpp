@@ -29,7 +29,7 @@ Tracker_ROI::Tracker_ROI(cv::Mat& _frame,const std::string &_trackerTypes) {
     tracker->init(frame,bbox);
 
 }
-Tracker_ROI::Tracker_ROI(const cv::Mat &_frame,const std::string &_trackerTypes,const cv::Rect_<int> bbox) {
+Tracker_ROI::Tracker_ROI(const cv::Mat &_frame,const std::string &_trackerTypes,const cv::Rect_<int> bbox):track_status(1) {
     frame=_frame;
 
     if (_trackerTypes == "MIL")
@@ -51,8 +51,8 @@ Tracker_ROI::Tracker_ROI(const cv::Mat &_frame,const std::string &_trackerTypes,
 
 void Tracker_ROI::New_frame(cv::Mat &_frame) {
     frame=_frame;
-    bool ok = tracker->update(frame, bbox);
-    if (ok)
+    track_status = tracker->update(frame, bbox);
+    if ( track_status)
     {
         // Tracking success : Draw the tracked object
         rectangle(frame, bbox, Scalar( 255, 0, 0 ), 2, 1 );
@@ -130,19 +130,15 @@ void ClockwiseSortPoints(vector<Point> &vPoints)
 
 void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &out)
 {
+  
     
 	int thresh = 200;//边缘检测的梯度阈值
 	//vector<vector<Point> > squares;
 	squares.clear();
 	Mat src,dst, gray;
     gray=image.clone();
-	/*src = image.clone();
-	out = image.clone();
-    */
-	//gray_one = Mat(src.size(), CV_8U);
 	//滤波增强边缘检测
 	medianBlur(gray, gray, 9);
-	//bilateralFilter(src, dst, 25, 25 * 2, 35);
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
     //检测边缘
@@ -152,15 +148,14 @@ void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &o
     erode(gray, gray, Mat(), Point(-1, -1));
     
 
-    imshow("预处理完成", gray);
+    //imshow("预处理完成", gray);
 
 
     // 轮廓查找
-    //findContours(gray, contours, RETR_CCOMP, CHAIN_APPROX_SIMPLE);
     findContours(gray, contours, hierarchy, cv::RetrievalModes::RETR_LIST, CHAIN_APPROX_SIMPLE);
 
     
-    cout<<"共找到"<<contours.size()<<"条轮廓"<<endl;
+    //cout<<"共找到"<<contours.size()<<"条轮廓"<<endl;
     // 检测所找到的轮廓
     //##########################################将其中最长的几条轮廓提出来##########################################
     vector<vector<Point> > contours_longest;
@@ -171,7 +166,6 @@ void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &o
         contours_longest.push_back(contours[1]);
             for (size_t i = 0; i < contours.size(); i++)
         {
-            //cout<<i<<endl;
             if (contours[i].size()>contours_longest[1].size())
             {
                 if(contours[i].size()>contours_longest[0].size())
@@ -199,14 +193,14 @@ void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &o
     for(size_t i = 0; i < contours_longest.size(); i++)
     {
         approx.clear();
-        cout<<"最长的第"<<i<<"条轮廓长度为"<<contours_longest[i].size()<<endl;
+        //cout<<"最长的第"<<i<<"条轮廓长度为"<<contours_longest[i].size()<<endl;
         bool flag=0;
         for(size_t j=0;j<contours_longest[i].size();j++)
         {
             if((fabs(contours_longest[i][j].x-image.cols/2)>(image.cols/2-20))||(fabs(contours_longest[i][j].y-image.rows/2)>(image.rows/2-20)))
             {
                 //把边界上的去掉
-                cout<<"该轮廓在边界附近"<<endl;
+                //cout<<"该轮廓在边界附近"<<endl;
                 flag=1;
                 continue;
             }
@@ -217,30 +211,26 @@ void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &o
         }
         //使用图像轮廓点进行多边形拟合
         approxPolyDP(Mat( contours_longest[i]), approx, arcLength(Mat( contours_longest[i]), true)*0.02,false);
-        cout<<"拟合得到的多边形顶点有"<<approx.size()<<endl;
+        //cout<<"拟合得到的多边形顶点有"<<approx.size()<<endl;
         if(approx.size()<4)
         {
-            cout<<"approx.size()<4"<<endl;
+            //cout<<"approx.size()<4"<<endl;
             continue;
         }
        //##########################################对每个拟合得到的多边形聚类为四边形##########################################
-        //cout<<approx.resize(2,approx.size())<<endl;
         Mat approx_data=Mat(approx);//.reshape(1);
         approx_data.convertTo(approx_data,CV_32F);
-        //cout<<Mat(approx).reshape(1)<<endl;//每个特征一列，即x,y各一列
         Mat labels_kmeans;
         TermCriteria criteria(TermCriteria::EPS+TermCriteria::COUNT,5,3);//终止标准类；参数：终止方法，最大迭代此书，精度
         Mat centers;
         kmeans(approx_data,4,labels_kmeans,criteria,4,KMEANS_PP_CENTERS,centers);//kmeans聚类
         approx=Mat_<Point> (centers.reshape(2));
         ClockwiseSortPoints(approx);
-        //Point a=centers[1];
         //##########################################对这些四边形进行判别##########################################
         
         if (fabs(contourArea(Mat(approx))) > 30000 )
         {
             double maxCosine = 0;
-            //cout<<"轮廓条数、面积满足条件"<<endl;
             for (int j = 2; j < 5; j++)
             {
                 // 求轮廓边缘之间角度的最大余弦
@@ -254,25 +244,20 @@ void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &o
             }
             else
             {
-                cout<<"maxCosine > 1"<<endl;
+                //cout<<"maxCosine > 1"<<endl;
             }
         }
         else
         {
-            cout<<"该多边形面积过小"<<endl;
-            cout<<"四个点为："<<Mat(approx)<<"                    面积为"<<fabs(contourArea(Mat(approx)))<<endl;
+            //cout<<"该多边形面积过小"<<endl;
+            //cout<<"四个点为："<<Mat(approx)<<"                    面积为"<<fabs(contourArea(Mat(approx)))<<endl;
         }
        
 	
     }
     
 	//画出矩形
-    /*
-    for(size_t i=0;i<squares[0].size();i++)
-    {
-        cout<<squares[0][i]<<endl;
-    }*/
-    cout<<"最终得到的矩形个数"<<squares.size()<<endl;
+    //cout<<"最终得到的矩形个数"<<squares.size()<<endl;
 
 	for (size_t i = 0; i < squares.size(); i++)
 	{

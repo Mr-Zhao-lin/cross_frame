@@ -36,33 +36,13 @@ int main(int argc, char **argv)
        track_square(capture,squares);
         }
 
-	
-
-    //ros::init ( argc, argv,"cross_frame");  
-    /*string trackerTypes[4] = {"MIL", "KCF",  "GOTURN",  "CSRT"};
-    string trackerType = trackerTypes[1];
-    VideoCapture video(0);
-    if(!video.isOpened())
-    {
-        cout << "Could not read video file" << endl;
-        return 1;
-    }
-    Mat frame;
-    video.read(frame);
-    Tracker_ROI track_roi(frame,trackerType);//初始化
-    while (video.read(frame))
-    {
-        //std::cout<<"done here";
-       track_roi.New_frame(frame);
-    }
-    */
-
     return 0;
 }
 // betaflight  mpu6050
 //
 void dectect_square(VideoCapture &video,vector<vector<Point> > &squares)
 {
+    cout<<"dectecting squares"<<endl;
     squares.clear();
     Mat frame,mask,frame_hsv,squares_picture;
     while (video.read(frame)) 
@@ -70,7 +50,7 @@ void dectect_square(VideoCapture &video,vector<vector<Point> > &squares)
         imshow("input_video", frame);
         cv::cvtColor(frame, frame_hsv,cv::COLOR_BGR2HSV);
 		inRange(frame_hsv,Scalar(0.46*180,0.36*255,0.0*255),Scalar(0.6*180,0.7*255,1.0*255),mask);//过滤
-        imshow("frame_hsv",mask);
+        //imshow("frame_hsv",mask);
        squares_picture=Mat::ones(mask.size(),mask.type())*255;
         
         findSquares( mask, squares,squares_picture);
@@ -87,6 +67,7 @@ void dectect_square(VideoCapture &video,vector<vector<Point> > &squares)
 
 void track_square(VideoCapture &video,vector<vector<Point> > &squares)
 {
+    //cout<<"tracking"<<endl;
 
     string trackerTypes[4] = {"MIL", "KCF",  "GOTURN",  "CSRT"};
     string trackerType = trackerTypes[1];
@@ -104,12 +85,17 @@ void track_square(VideoCapture &video,vector<vector<Point> > &squares)
     
     while (video.read(frame))
     {
-        //cout<<"here"<<endl;
+        cout<<"tracking"<<endl;
         //std::cout<<"done here";
        track_roi_1.New_frame(frame);
        track_roi_2.New_frame(frame);
        track_roi_3.New_frame(frame);
        track_roi_4.New_frame(frame);
+       //cout<<track_roi_1.track_status<<endl;
+       if(!(track_roi_1.track_status&&track_roi_2.track_status&&track_roi_3.track_status&&track_roi_4.track_status)){
+        //cout<<"lost tracking"<<endl;
+        break;
+       }
        
     }
 }
