@@ -8,6 +8,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
 #include <opencv2/core/ocl.hpp>
+#include <opencv2/tracking/tracking_legacy.hpp>
 using namespace cv;
 using namespace std;
 
@@ -23,6 +24,7 @@ public:
     cv::Rect_<int> bbox;
     cv::Mat frame;
     cv::Ptr<cv::Tracker> tracker;
+    Ptr<legacy::Tracker>  tracker_legacy;
     bool track_status;
     Tracker_ROI(cv::Mat& _frame,const std::string &_trackerTypes="KCF");//初始化tracker,用鼠标框选
     Tracker_ROI(const cv::Mat &_frame,const std::string &_trackerTypes="KCF",const cv::Rect_<int> bbox={287, 23, 86, 320});//初始化tracker

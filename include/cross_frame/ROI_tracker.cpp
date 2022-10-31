@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
 #include <opencv2/core/ocl.hpp>
+#include <opencv2/tracking/tracking_legacy.hpp>
 
 using namespace cv;
 using namespace std;
@@ -20,6 +21,11 @@ Tracker_ROI::Tracker_ROI(cv::Mat& _frame,const std::string &_trackerTypes) {
         tracker = TrackerGOTURN::create();
     else if (_trackerTypes == "CSRT")
         tracker = TrackerCSRT::create();
+    else if (_trackerTypes == "MOSSE")
+        //tracker = TrackerCSRT::create();
+       //legacy::TrackerMOSSE tracker_mosse;
+        //tracker=tracker_mosse.create();
+        tracker_legacy=cv::legacy::TrackerMOSSE::create();
     else
         std::cout<<"ERROR:No such tracker";
 

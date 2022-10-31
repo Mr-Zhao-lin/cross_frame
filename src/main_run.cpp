@@ -6,11 +6,13 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/tracking.hpp"
 #include <opencv2/core/ocl.hpp>
-
+#include"time.h"
 using namespace cv;
 using namespace std;
 void dectect_square(VideoCapture &video,vector<vector<Point> > &squares);
 void track_square(VideoCapture &video,vector<vector<Point> > &squares);
+
+int frame_num=0;
 int main(int argc, char **argv)
 {
    
@@ -27,14 +29,26 @@ int main(int argc, char **argv)
     bool if_dectect=1;//跟踪(0)还是检测(1)
     vector<vector<Point> > squares;
 	Mat frame,mask,frame_hsv,squares_picture;
+    static  int fps = 0;
+    clock_t start,finish;
+    start = clock();//初始化
+
+
     while(1)
     {
         // 检测框
+
         dectect_square(capture,squares);
         
         //  跟踪框    
        track_square(capture,squares);
-        }
+       finish = clock();//初始化结束时间
+        fps = frame_num/((double)(finish - start) / CLOCKS_PER_SEC);
+        frame_num = 0;
+        start= finish;
+        cout<<"频率"<<fps<<endl;
+        
+    }
 
     return 0;
 }
@@ -47,17 +61,16 @@ void dectect_square(VideoCapture &video,vector<vector<Point> > &squares)
     Mat frame,mask,frame_hsv,squares_picture;
     while (video.read(frame)) 
     {   
+        frame_num++;
         imshow("input_video", frame);
         cv::cvtColor(frame, frame_hsv,cv::COLOR_BGR2HSV);
 		inRange(frame_hsv,Scalar(0.46*180,0.36*255,0.0*255),Scalar(0.6*180,0.7*255,1.0*255),mask);//过滤
         //imshow("frame_hsv",mask);
        squares_picture=Mat::ones(mask.size(),mask.type())*255;
-        
         findSquares( mask, squares,squares_picture);
         if(squares.size()==1)
         {
             waitKey(10);
-            
             break;
         }
         
@@ -69,8 +82,8 @@ void track_square(VideoCapture &video,vector<vector<Point> > &squares)
 {
     //cout<<"tracking"<<endl;
 
-    string trackerTypes[4] = {"MIL", "KCF",  "GOTURN",  "CSRT"};
-    string trackerType = trackerTypes[1];
+    string trackerTypes[5] = {"MIL", "KCF",  "GOTURN",  "CSRT", "MOSSE"};
+    string trackerType = trackerTypes[4];
     Mat frame;
     video.read(frame);
     int track_area=100;
@@ -85,6 +98,7 @@ void track_square(VideoCapture &video,vector<vector<Point> > &squares)
     
     while (video.read(frame))
     {
+        frame_num++;
         cout<<"tracking"<<endl;
         //std::cout<<"done here";
        track_roi_1.New_frame(frame);
