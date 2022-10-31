@@ -74,17 +74,16 @@ void dectect_square(VideoCapture &video,vector<vector<Point> > &squares)
     while (video.read(frame)) 
     {   
         frame_num++;
-        imshow("input_video", frame);
+        //imshow("input_video", frame);
         cv::cvtColor(frame, frame_hsv,cv::COLOR_BGR2HSV);
         inRange(frame_hsv,Scalar((324.0/360.0)*180,0.470*255,0.180*255),Scalar((350.0/360.0)*180,0.78*255,0.625*255),mask);//过滤
 		//inRange(frame_hsv,Scalar(0.46*180,0.36*255,0.0*255),Scalar(0.6*180,0.7*255,1.0*255),mask);//过滤
-        imshow("frame_hsv",mask);
+        //imshow("frame_hsv",mask);
        squares_picture=Mat::ones(mask.size(),mask.type())*255;
         findSquares( mask, squares,squares_picture);
-        waitKey(100);
         if(squares.size()>=1)
         {
-            waitKey(100);
+            waitKey(1);
             break;
         }
         

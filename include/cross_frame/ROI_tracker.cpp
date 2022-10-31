@@ -192,6 +192,7 @@ void findSquares(const cv::Mat& image,vector<vector<Point> >& squares,cv::Mat &o
             //cout<<"该多边形面积过小"<<endl;
             //cout<<"四个点为："<<Mat(approx)<<"                    面积为"<<fabs(contourArea(Mat(approx)))<<endl;
         }
+        break;//最大的一个轮廓已经满足条件，可以不用检测剩下的了
        
 	
     }
